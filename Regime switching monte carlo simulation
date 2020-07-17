@@ -1,0 +1,110 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+import math
+
+def get_state(matrix,tmax=500):
+    state = []
+    t = 0
+    #initstate = random.randint(1, 2)
+    initstate = 1
+    state.append(initstate)
+
+    while t < tmax:
+        t = t+1
+        test_state = random.randint(1, 2)
+        alpha = matrix[test_state-1][state[t-1]-1]
+        u = random.uniform(0,1)
+        if u <= alpha:
+            newstate = test_state
+        else:
+            newstate = state[t-1]
+        state.append(newstate)
+    print(state)
+    return state
+
+def cacu_logs(state, mu1, mu2, sig1, sig2):
+    logs = []
+    logs.append(0)
+    for i in state[1:]:
+        if i == 1:
+            newlog = random.normalvariate(mu1/12, sig1/math.sqrt(12))
+        else:
+            newlog = random.normalvariate(mu2, sig2)
+        logs.append(newlog)
+    #print(logs)
+    return logs
+
+def cacu_s(logs):
+    sumlogs = []
+    s = []
+    for i in range(len(logs)):
+        sumlog=sum(logs[:i+1])
+        news=math.exp(sumlog)
+        sumlogs.append(sumlog)
+        s.append(news)
+    print(sumlogs)
+    #print(s)
+    x = range(len(s))
+    #plt.plot(s)
+    #plt.xlabel
+    #plt.show()
+    return s
+
+def monte_carlo(theta, times=3):
+    results = []
+    for i in range(times):
+        matrix = [[theta[4], 1 - theta[5]], [theta[5], 1 - theta[4]]]
+        state = get_state(matrix, tmax=120)
+        logs = cacu_logs(state, theta[0], theta[1], theta[2], theta[3])
+        result = cacu_s(logs)
+        results.append(result)
+    #for j in range(times):
+        #plt.plot(results[j][:])
+        #plt.ylabel('S')
+        #plt.xlabel('Time/Month')
+        #plt.title('Total Return Index (Initial Value as 1)')
+    #plt.show()
+
+    resultsarray = np.array(results)
+
+    print(resultsarray)
+
+    averageresults = []
+    vars = []
+
+    for k in range(len(state)):
+        averageresult = np.mean(resultsarray[:, k])
+        var = np.sqrt(np.var(resultsarray[:, k])/(times-1))
+        averageresults.append(averageresult)
+        vars.append(var)
+    print(averageresults)
+    tops = []
+    bottoms = []
+
+    for m in range(len(state)):
+        top = averageresults[m] + 1.65*vars[m]
+        bottom = averageresults[m] - 1.65*vars[m]
+        tops.append(top)
+        bottoms.append(bottom)
+
+    #plt.plot(range(len(state)), averageresults)
+    #plt.fill_between(range(len(state)), bottoms, tops, color='b', alpha=0.2)
+    #plt.ylabel('Average S')
+    #plt.xlabel('Time/Month')
+    #plt.title('Total Return Index(The shadow represents the 0.95 confidence interval)')
+
+    #plt.show()
+
+
+
+    return results
+
+
+theta = [0.0123, -0.0157, 0.0347, 0.0778, 1, 0]
+#matrix = [[theta[4], 1-theta[4]], [1-theta[5], theta[5]]]
+matrix = [[1, 0], [1, 0]]
+state = get_state(matrix, tmax=120)
+logs = cacu_logs(state, theta[0], theta[1], theta[2], theta[3])
+s = cacu_s(logs)
+monte_carlo(theta, times=10000)
